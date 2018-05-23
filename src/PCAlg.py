@@ -18,6 +18,7 @@ class pcalg():
                     if no feature_names provided,
                     key=value=column position
 
+
     """
 
     def __init__(self, dataset, feature_names=None):
@@ -69,8 +70,10 @@ class pcalg():
                 if len(x_neighbors) >= d:
                     cont = True
                     for z in combinations(x_neighbors, d):
-                        if indep_test(self.dataset, x, y,
-                                      z, alpha):
+                        pvalue =  indep_test(self.dataset[x],
+                                    self.dataset[y],
+                                    self.dataset[z])
+                        if pvalue < alpha:
                             self.G.remove_edge(x, y)
                             self.d_separators[(x, y)] = z
                             self.d_separators[(y, x)] = z

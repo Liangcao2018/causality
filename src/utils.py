@@ -3,17 +3,19 @@ import functools
 
 
 def check_dataset(dataset):
-    assert isinstance(dataset, np.array),\
-        'Dataset must be a numpy 2D array'
+    assert isinstance(dataset, np.ndarray), (
+        'Dataset must be a 2D numpy array')
+    assert dataset.shape[1] >= 2, (
+        'Need at leat 2 variables: shape is {}'.format(dataset.shape))
 
 
-def get_features(dataset, feature_names):
+def get_features(dataset, feature_names=None):
     if feature_names:
-        len_condition = len(feature_names.keys) == dataset.shape[1]
-        assert isinstance(feature_names, dict) and len_condition,\
+        len_condition = len(feature_names) == dataset.shape[1]
+        assert isinstance(feature_names, list) and len_condition,\
             "number of elements in feature_names\
         and number of features in dataset do not match"
-        return feature_names
+        return {k: v for k, v in enumerate(feature_names)}
 
     return {k: v for k, v in enumerate(range(dataset.shape[1]))}
 
