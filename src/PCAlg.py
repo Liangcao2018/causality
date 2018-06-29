@@ -7,14 +7,14 @@ from collections import defaultdict
 
 class pcalg():
     """
-    Peter Sprites and Clark Glymour algorithm
+    Peter Sprites and Clark Glymour ALGorithm
 
     input :
-    dataset =  N*M numpy array where N is the sample
-            size and M the feature size
+    dataset =  N*M numpy array where N=sample
+            size and M=feature size
 
     feature_names = dictionary where key = column
-                    position and value = column name.
+                    position, value = column name.
                     if no feature_names provided,
                     key=value=column position
 
@@ -50,6 +50,7 @@ class pcalg():
         """
         self._istantiate_fully_connected_graph()
         self.d_separators = {}
+        self.stable = stable
         d = 0
         cont = True
 
@@ -70,9 +71,9 @@ class pcalg():
                 if len(x_neighbors) >= d:
                     cont = True
                     for z in combinations(x_neighbors, d):
-                        pvalue =  indep_test(self.dataset[x],
-                                    self.dataset[y],
-                                    self.dataset[z])
+                        pvalue = indep_test(self.dataset[x],
+                                            self.dataset[y],
+                                            self.dataset[z])
                         if pvalue < alpha:
                             self.G.remove_edge(x, y)
                             self.d_separators[(x, y)] = z
@@ -92,7 +93,10 @@ class pcalg():
         # between X and Y conditioned upon Z.
         # If conditionally dependent, Z is an unshielded collider.
         # Orient edges to point into Z (X->Z<-Y)
-        # is the conditional Independence test needed???
+        # Testing for conditional independence is not required when using
+        # the stable version of the PCALG(i.e. the SGS variant) because
+        # we already have all d-separators of order level 1 between X and Y
+        self.colliders = {}
         for x, y in combinations(self.features.keys(), 2):
             x_successors = self.G.successors(x)
             if y in x_successors:
@@ -102,7 +106,20 @@ class pcalg():
                 continue
             intersect = set(x_successors).intersection(set(y_successors))
             for z in intersect:
-                pass
+                if z in self.d_separators[(x, y)]:
+                    continue
+                if not self.stable:
+                    pvalue = indep_test(self.dataset[x],
+                                        self.dataset[y], self.dataset[z])
+                    if pvalue >= alpha:
+                        # x and y are conditionnaly dependent
+                        # so z is a collider.
+                        self.G.remove_edge(z, x)
+                        self.G.remove_edge(z, y)
+                        continue
+                else:
+                    self.G.remove_edge(z, x)
+                    self.G.remove_edge(z, y)
 
         # STEP 2: PREVENT SPURIOUS UNSHIELDED COLLIDERS
         # for each X Z Y such that
@@ -112,6 +129,7 @@ class pcalg():
         # X->Z->Y
         # if  X->Z<-Y were true, Z would have been picked up
         # as unshielded collider in STEP 1
+
 
         #  STEP 3: PREVENT CYCLES
         # If there is a pair of variables, X and Y connected 
