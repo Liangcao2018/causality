@@ -1,0 +1,7 @@
+// This file is the descriptor for the Standard Web App Template causal-inference_dowhy
+{
+    "libraries" : [],
+    "label" : "Short description of causal-inference_dowhy",
+    "backendEnabled" : true,
+    "autoStartBackend" : false
+}
